@@ -65,7 +65,9 @@ def run_eel(files):
 def main():
     m = run(Env, prog="Touch")
 
-    if m.env.from_name:
+    if not len(m.env.files):
+        m.alert("Invoke the program with some files")
+    elif m.env.from_name:
         for p in m.env.files:
             if m.env.from_name is True:  # auto detection
                 try:
