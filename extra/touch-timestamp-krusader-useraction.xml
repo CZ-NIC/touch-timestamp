@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE KrusaderUserActions>
+<KrusaderUserActions>
+ <action name="touch-timestamp">
+  <title>&amp;touch-timestamp</title>
+  <tooltip>touch-timestamp</tooltip>
+  <category>Files</category>
+  <description>%aList("Selected")%</description>
+  <command>touch-timestamp %aList("Selected")%</command>
+  <defaultshortcut>Alt+Shift+T</defaultshortcut>
+ </action>
+</KrusaderUserActions>
