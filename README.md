@@ -27,11 +27,14 @@ pip install touch-timestamp[eel]
 
 # Docs
 
-## Exact date
+## Methods to set the date
 
-When invoked with file paths, the program sets their modification times to the specified time.
+When invoked with file paths, the program sets their modification times
+* to the specified time
+* to the date from the Exif through [jhead](https://github.com/Matthias-Wandel/jhead)
+* to a relative time
 
-![Gui window](asset/mininterface-gui.avif "Graphical interface")
+![Gui window](asset/mininterface-gui-full.avif "Graphical interface")
 
 ## Fetch the time from the file name
 
@@ -59,8 +62,8 @@ usage: Touch [-h] [--eel | --no-eel] [--from-name {True,False}|STR]
 │ -h, --help                                                                 │
 │     show this help message and exit                                        │
 │ --eel, --no-eel                                                            │
-│     Prefer Eel GUI. (Set the date as in a chromium browser.) (default:     │
-│     True)                                                                  │
+│     Prefer Eel GUI. (Set the date as in a chromium browser.)               │
+│     Does not allow setting from EXIF and relative set. (default: False)    │
 │ --from-name {True,False}|STR                                               │
 │     Fetch the modification time from the file names stem. Set the format   │
 │     as for `datetime.strptime` like '%Y%m%d_%H%M%S'.                       │

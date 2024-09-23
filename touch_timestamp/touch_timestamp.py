@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-from dataclasses import dataclass, field
+from dataclasses import MISSING, dataclass, field
 from datetime import datetime
 from os import utime
 from pathlib import Path
+import subprocess
 
 import dateutil.parser
-from mininterface import run
+from mininterface import Tag, run
+from mininterface.experimental import SubmitButton
 from tyro.conf import Positional
 
 try:
@@ -23,8 +25,10 @@ class Env:
     files: Positional[list[Path]] = field(default_factory=list)
     """ Files the modification date is to be changed. """
 
-    eel: bool = True
-    """ Prefer Eel GUI. (Set the date as in a chromium browser.) """
+    eel: bool = False
+    """ Prefer Eel GUI. (Set the date as in a chromium browser.)
+    Does not allow setting from EXIF and relative set.
+    """
 
     from_name: bool | DateFormat = False
     """
@@ -65,7 +69,8 @@ def run_eel(files):
 def main():
     m = run(Env, prog="Touch")
 
-    if not len(m.env.files):
+    # NOTE We should get rid of m.env.files is MISSING, as mininterface should ask for that.
+    if m.env.files is MISSING or not len(m.env.files):
         m.alert("Invoke the program with some files")
     elif m.env.from_name:
         for p in m.env.files:
@@ -95,11 +100,29 @@ def main():
             title = f"Touch {m.env.files[0].name}"
 
         with m:
-            m.title = title # NOTE: Changing title does not work
+            m.title = title  # NOTE: Changing title does not work
             date = datetime.fromtimestamp(Path(m.env.files[0]).stat().st_mtime)
-            output = {title: {"date": str(date.date()), "time": str(date.time())}}
-            m.form(output)
-            set_files_timestamp(output["date"], output["time"], m.env.files)
+            form = {
+                "Specific time": {
+                    "date": str(date.date()), "time": str(date.time()), "Set": SubmitButton()
+                }, "From exif": {
+                    "Fetch": SubmitButton()
+                }, "Relative time": {
+                    "Add minutes": Tag(0, description="+ how many minutes", annotation=int), "Shift": SubmitButton()
+                }, "Subtract time": {  # NOTE: mininterface GUI works bad with negative numbers
+                    "Subtract minutes": Tag(0, description="- how many minutes", annotation=int), "Shift": SubmitButton()
+                }
+            }
+            output = m.form(form, title) # NOTE: Do not display submit button
+
+            if (d := output["Specific time"])["Set"]:
+                set_files_timestamp(d["date"], d["time"], m.env.files)
+            elif output["From exif"]["Fetch"]:
+                [subprocess.run(["jhead", "-ft", f]) for f in m.env.files]
+            elif (d := output["Relative time"])["Shift"]:
+                [subprocess.run(["touch", "-d", f"{d["Add minutes"]} minutes", "-r", f, f]) for f in m.env.files]
+            elif (d := output["Subtract time"])["Shift"]:
+                [subprocess.run(["touch", "-d", f"-{d["Subtract minutes"]} minutes", "-r", f, f]) for f in m.env.files]
 
 
 if __name__ == "__main__":
