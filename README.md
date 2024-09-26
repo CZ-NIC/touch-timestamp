@@ -1,6 +1,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Change file timestamps with a dialog window.
+Change files timestamp with a dialog window.
 
 ![Gui window](asset/mininterface-gui.avif "Graphical interface")
 

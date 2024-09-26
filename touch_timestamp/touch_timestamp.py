@@ -8,6 +8,7 @@ import subprocess
 import dateutil.parser
 from mininterface import Tag, run
 from mininterface.experimental import SubmitButton
+from mininterface.validators import not_empty
 from tyro.conf import Positional
 
 try:
@@ -69,10 +70,9 @@ def run_eel(files):
 def main():
     m = run(Env, prog="Touch")
 
-    # NOTE We should get rid of m.env.files is MISSING, as mininterface should ask for that.
     if m.env.files is MISSING or not len(m.env.files):
-        m.alert("Invoke the program with some files")
-    elif m.env.from_name:
+        m.env.files = m.form({"Choose files": Tag("", annotation=list[Path], validation=not_empty)})
+    if m.env.from_name:
         for p in m.env.files:
             if m.env.from_name is True:  # auto detection
                 try:
@@ -113,7 +113,7 @@ def main():
                     "Subtract minutes": Tag(0, description="- how many minutes", annotation=int), "Shift": SubmitButton()
                 }
             }
-            output = m.form(form, title) # NOTE: Do not display submit button
+            output = m.form(form, title)  # NOTE: Do not display submit button
 
             if (d := output["Specific time"])["Set"]:
                 set_files_timestamp(d["date"], d["time"], m.env.files)
