@@ -6,13 +6,13 @@ from pathlib import Path
 import subprocess
 
 import dateutil.parser
-from mininterface import Choices, Tag, run
+from mininterface import Tag, run
 from mininterface.experimental import SubmitButton
 from mininterface.validators import not_empty
 from tyro.conf import Positional
 
 try:
-    from eel import expose, init, start
+    from eel import expose, init, start  # NOTE remove eel
     eel = True
 except ImportError:
     eel = None
@@ -39,6 +39,7 @@ class Env:
 
     Ex: `--from-name True 20240827_154252.heic` → modification time = 27.8.2024 15:42
     """
+    # NOTE put into the GUI from_name
 
 
 def count_relative_shift(date, time, path: str | Path):
@@ -51,9 +52,22 @@ def get_date(path: str | Path):
     return datetime.fromtimestamp(Path(path).stat().st_mtime)
 
 
-def refresh_relative(_):
-    # NOTE see the time span here
-    pass
+def refresh_relative(tag: Tag):
+    def r(d): return d.replace(microsecond=0)
+
+    d = tag.facet._form["Relative with anchor"]
+
+    files = tag.facet._env.files
+    dates = [get_date(p) for p in files]
+
+    shift = count_relative_shift(d["date"].val, d["time"].val, d["Anchor"].val)
+
+    tag.facet.set_title(f"Currently, {len(files)} files have time span:"
+                        f"\n{r(min(dates))} – {r(max(dates))}"
+                        f"\nIt will be shifted by {shift} to:"
+                        f"\n{r(shift+min(dates))} – {r(shift+max(dates))}")
+
+    # NOTE: when mininterface allow form refresh, fetch the date and time from the newly-chosen anchor field
 
 
 def set_files_timestamp(date, time, files: list[str]):
@@ -83,7 +97,7 @@ def run_eel(files):
 
 
 def main():
-    m = run(Env, prog="Touch")
+    m = run(Env, prog="Touch", interface="gui")
 
     if m.env.files is MISSING or not len(m.env.files):
         m.env.files = m.form({"Choose files": Tag("", annotation=list[Path], validation=not_empty)})
@@ -116,35 +130,35 @@ def main():
             title = f"Touch {anchor.name}"
 
         with m:
-            m.title = title  # NOTE: Changing title does not work
+            m.title = title  # NOTE: Changing window title does not work
             date = get_date(anchor)
             form = {
                 "Specific time": {
                     "date": str(date.date()), "time": str(date.time()), "Set": SubmitButton()
+                    # NOTE program fails on wrong date
                 }, "From exif": {
                     "Fetch...": SubmitButton()
                 }, "Relative time": {
                     # NOTE: mininterface GUI works bad with negative numbers
                     "Action": Tag("add", choices=["add", "subtract"]),
                     "Unit": Tag("minutes", choices=["minutes", "hours"]),
-                    "How many": Tag(0, annotation=int),  # TODO allows an empty one
+                    "How many": Tag(0, annotation=int),
                     "Shift": SubmitButton()
                 }
             }
 
             if len(m.env.files) > 1:
                 form["Relative with anchor"] = {
-                    # "Anchor": Tag(anchor, choices=m.env.files,
-                    #               description="Set the file to the specific date, then shift all the other relative to this"),
-                    # TODO Path anchor conversion fails
-                    "date": Tag(str(date.date()), on_change=refresh_relative),
+                    "Anchor": Tag(anchor, choices=m.env.files, on_change=refresh_relative,
+                                  description="Set the file to the specific date, then shift all the other relative to this"),
+                    "date": Tag(str(date.date()), on_change=refresh_relative, validation=lambda tag: str(tag.val).startswith("2")),
                     "time": Tag(str(date.time()), on_change=refresh_relative),
                     "Set": SubmitButton()
                 }
-                # NOTE: change the time span on change
 
             output = m.form(form, title)  # NOTE: Do not display submit button
 
+            # NOTE use callbacks instead of these ifs
             if (d := output["Specific time"])["Set"]:
                 set_files_timestamp(d["date"], d["time"], m.env.files)
             elif output["From exif"]["Fetch..."]:
@@ -154,14 +168,12 @@ def main():
                 else:
                     m.alert("Ok, exits")
             elif (d := output["Relative time"])["Shift"]:
-                # TODO try one
                 quantity = d['How many']
                 if d["Action"] == "subtract":
                     quantity *= -1
                 touch_multiple(m.env.files, f"{quantity} {d['Unit']}")
             elif (d := output["Relative with anchor"])["Set"]:
-                # reference = count_relative_shift(d["date"], d["time"], d["Anchor"]) # TODO
-                reference = count_relative_shift(d["date"], d["time"], m.env.files[0])
+                reference = count_relative_shift(d["date"], d["time"], d["Anchor"])
 
                 # microsecond precision is neglected here, touch does not takes it
                 touch_multiple(m.env.files, f"{reference.days} days {reference.seconds} seconds")
@@ -171,6 +183,5 @@ def touch_multiple(files, relative_str):
     [subprocess.run(["touch", "-d", relative_str, "-r", f, f]) for f in files]
 
 
-# TODO readme update
 if __name__ == "__main__":
     main()

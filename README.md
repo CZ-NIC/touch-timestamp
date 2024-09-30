@@ -33,6 +33,7 @@ When invoked with file paths, the program sets their modification times
 * to the specified time
 * to the date from the Exif through [jhead](https://github.com/Matthias-Wandel/jhead)
 * to a relative time
+* to the specific time, set for a file, then shifts all the other relative to this
 
 ![Gui window](asset/mininterface-gui-full.avif "Graphical interface")
 
