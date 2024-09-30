@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 
 import dateutil.parser
-from mininterface import Tag, run
+from mininterface import Choices, Tag, run
 from mininterface.experimental import SubmitButton
 from mininterface.validators import not_empty
 from tyro.conf import Positional
@@ -39,6 +39,21 @@ class Env:
 
     Ex: `--from-name True 20240827_154252.heic` → modification time = 27.8.2024 15:42
     """
+
+
+def count_relative_shift(date, time, path: str | Path):
+    target = dateutil.parser.parse(date + " " + time)
+    date = get_date(path)
+    return target - date
+
+
+def get_date(path: str | Path):
+    return datetime.fromtimestamp(Path(path).stat().st_mtime)
+
+
+def refresh_relative(_):
+    # NOTE see the time span here
+    pass
 
 
 def set_files_timestamp(date, time, files: list[str]):
@@ -94,36 +109,68 @@ def main():
     elif eel and m.env.eel:  # set exact date with eel
         run_eel(m.env.files)
     else:  # set exact date with Mininterface
+        anchor = m.env.files[0]
         if len(m.env.files) > 1:
             title = f"Touch {len(m.env.files)} files"
         else:
-            title = f"Touch {m.env.files[0].name}"
+            title = f"Touch {anchor.name}"
 
         with m:
             m.title = title  # NOTE: Changing title does not work
-            date = datetime.fromtimestamp(Path(m.env.files[0]).stat().st_mtime)
+            date = get_date(anchor)
             form = {
                 "Specific time": {
                     "date": str(date.date()), "time": str(date.time()), "Set": SubmitButton()
                 }, "From exif": {
-                    "Fetch": SubmitButton()
+                    "Fetch...": SubmitButton()
                 }, "Relative time": {
-                    "Add minutes": Tag(0, description="+ how many minutes", annotation=int), "Shift": SubmitButton()
-                }, "Subtract time": {  # NOTE: mininterface GUI works bad with negative numbers
-                    "Subtract minutes": Tag(0, description="- how many minutes", annotation=int), "Shift": SubmitButton()
+                    # NOTE: mininterface GUI works bad with negative numbers
+                    "Action": Tag("add", choices=["add", "subtract"]),
+                    "Unit": Tag("minutes", choices=["minutes", "hours"]),
+                    "How many": Tag(0, annotation=int),  # TODO allows an empty one
+                    "Shift": SubmitButton()
                 }
             }
+
+            if len(m.env.files) > 1:
+                form["Relative with anchor"] = {
+                    # "Anchor": Tag(anchor, choices=m.env.files,
+                    #               description="Set the file to the specific date, then shift all the other relative to this"),
+                    # TODO Path anchor conversion fails
+                    "date": Tag(str(date.date()), on_change=refresh_relative),
+                    "time": Tag(str(date.time()), on_change=refresh_relative),
+                    "Set": SubmitButton()
+                }
+                # NOTE: change the time span on change
+
             output = m.form(form, title)  # NOTE: Do not display submit button
 
             if (d := output["Specific time"])["Set"]:
                 set_files_timestamp(d["date"], d["time"], m.env.files)
-            elif output["From exif"]["Fetch"]:
-                [subprocess.run(["jhead", "-ft", f]) for f in m.env.files]
+            elif output["From exif"]["Fetch..."]:
+                m.facet.set_title("")
+                if m.is_yes("Fetches the times from the EXIF if the fails are JPGs."):
+                    [subprocess.run(["jhead", "-ft", f]) for f in m.env.files]
+                else:
+                    m.alert("Ok, exits")
             elif (d := output["Relative time"])["Shift"]:
-                [subprocess.run(["touch", "-d", f"{d["Add minutes"]} minutes", "-r", f, f]) for f in m.env.files]
-            elif (d := output["Subtract time"])["Shift"]:
-                [subprocess.run(["touch", "-d", f"-{d["Subtract minutes"]} minutes", "-r", f, f]) for f in m.env.files]
+                # TODO try one
+                quantity = d['How many']
+                if d["Action"] == "subtract":
+                    quantity *= -1
+                touch_multiple(m.env.files, f"{quantity} {d['Unit']}")
+            elif (d := output["Relative with anchor"])["Set"]:
+                # reference = count_relative_shift(d["date"], d["time"], d["Anchor"]) # TODO
+                reference = count_relative_shift(d["date"], d["time"], m.env.files[0])
+
+                # microsecond precision is neglected here, touch does not takes it
+                touch_multiple(m.env.files, f"{reference.days} days {reference.seconds} seconds")
 
 
+def touch_multiple(files, relative_str):
+    [subprocess.run(["touch", "-d", relative_str, "-r", f, f]) for f in files]
+
+
+# TODO readme update
 if __name__ == "__main__":
     main()
