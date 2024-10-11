@@ -17,14 +17,6 @@ Install with a single command from [PyPi](https://pypi.org/project/touch-timesta
 pip install touch-timestamp
 ```
 
-Or eventually add [eel](https://github.com/python-eel/Eel) to provide browser-like GUI window.
-
-```bash
-pip install touch-timestamp[eel]
-```
-
-![Browser interface](asset/eel-gui.avif "Eel interface")
-
 # Docs
 
 ## Methods to set the date

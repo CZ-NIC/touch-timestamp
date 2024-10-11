@@ -22,7 +22,6 @@ def set_files_timestamp(date, time, files: list[str]):
 def count_relative_shift(date, time, path: str | Path):
     target = dateutil.parser.parse(f"{date} {time}")
     date = get_date(path)
-    print("25: target,date", path, date, "->", target, )  # TODO
     return target - date
 
 
