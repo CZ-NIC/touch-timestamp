@@ -15,7 +15,9 @@ from .utils import get_date
 
 
 def main():
-    m = run(Env, prog="Touch", interface="gui")
+    # NOTE TUI is not great due to the Mininterface sections mostly ignored
+    # It does not end after a button is clicked.
+    m = run(Env, prog="Touch")
 
     if m.env.files is MISSING or not len(m.env.files):
         m.env.files = m.form({"Choose files": Tag("", annotation=list[Path], validation=not_empty)})
@@ -47,6 +49,9 @@ def main():
                 # NOTE: mininterface GUI works bad with negative numbers, hence we use shift_action
                 **{d[t].name: d[t] for t in ("shift_action", "unit", "shift")},
                 "Shift": controller.relative_time
+            },
+            "From name": {
+                "Autodetect format": controller.from_name_helper
             }
         }
 
@@ -56,6 +61,7 @@ def main():
                 "Set": controller.referenced_shift
             }
 
+        # TODO hide submit button, so that enter submits current button
         m.form(form, title)
 
 

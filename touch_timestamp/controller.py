@@ -38,6 +38,11 @@ class Controller:
             return False
         return True  # something has been processed
 
+    def from_name_helper(self):
+        # NOTE: get rid of this method when Mininterface is able to handle env.from_name `bool | DateFormat`
+        self.m.env.from_name = True
+        self.from_name()
+
     def from_name(self):
         e = self.m.env
         for p in e.files:

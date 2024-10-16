@@ -30,7 +30,7 @@ class Env:
 
     Ex: `--from-name True 20240827_154252.heic` → modification time = 27.8.2024 15:42
     """
-    # NOTE put into the GUI from_name
+    # NOTE put into the GUI from_name, now the GUI does not allow to set the format
 
     # Relative time shift
     # NOTE: mininterface GUI works bad with negative numbers
