@@ -48,8 +48,8 @@ class Controller:
         for p in e.files:
             if e.from_name is True:  # auto detection
                 try:
-                    # 20240828_160619.heic -> "20240828 160619" -> "28.8."
-                    # IMG_20240101_010053.jpg -> "1.1."
+                    # 20240828_160619.heic -> "20240828 160619" -> "2024-08-28 16:06:19"
+                    # IMG_20240101_010053.jpg -> "2024-01-01 01:00:53"
                     dt = dateutil.parser.parse(p.stem.replace("IMG_", "").replace("_", " "))
                 except ValueError:
                     print(f"Cannot auto detect the date format: {p}")

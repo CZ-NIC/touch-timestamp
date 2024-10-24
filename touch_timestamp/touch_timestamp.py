@@ -11,12 +11,10 @@ from .controller import Controller
 from .env import Env
 from .utils import get_date
 
-# TODO update docs, add tests
+# NOTE add tests for CLI flags
 
 
 def main():
-    # NOTE TUI is not great due to the Mininterface sections mostly ignored
-    # It does not end after a button is clicked.
     m = run(Env, prog="Touch")
 
     if m.env.files is MISSING or not len(m.env.files):
@@ -61,8 +59,7 @@ def main():
                 "Set": controller.referenced_shift
             }
 
-        # TODO hide submit button, so that enter submits current button
-        m.form(form, title)
+        m.form(form, title, submit=False)
 
 
 if __name__ == "__main__":
