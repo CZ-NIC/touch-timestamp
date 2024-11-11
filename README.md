@@ -15,6 +15,7 @@ Install with a single command from [PyPi](https://pypi.org/project/touch-timesta
 
 ```bash
 pip install touch-timestamp
+touch-timestamp --integrate-to-system  # bash completion wizzard
 ```
 
 # Docs
@@ -37,14 +38,14 @@ Everything can be achieved via CLI flag. See the `--help`.
 
 Let's take fetching the time from the file name as an example.
 
-Should you end up with files that keep the date in the file name, use the `--from-name` parameter. In the help, you see that True trigger an automatic detection of the time and date format.
+Should you end up with files that keep the date in the file name, use the `from-name` command. In the help, you see that without setting format, it triggers an automatic detection of the time and date format.
 
 ```bash
-$ touch-timestamp 20240828_160619.heic --from-name True
+$ touch-timestamp from-name 20240828_160619.heic
 Changed 2001-01-01T12:00:00 → 2024-08-28T16:06:19: 20240828_160619.heic
 ```
 
 
 ## Krusader user action
 
-To change the file timestamps easily from Krusader, import this [user action](extra/touch-timestamp-krusader-useraction.xml): `touch-timestamp %aList("Selected")%`
+To change the file timestamps easily from Krusader, import this [user action](extra/touch-timestamp-krusader-useraction.xml): `touch-timestamp subcommand %aList("Selected")%`
