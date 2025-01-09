@@ -1,19 +1,19 @@
+import subprocess
+from dataclasses import MISSING, dataclass, field
 from datetime import datetime
 from os import utime
-import subprocess
+from pathlib import Path
+from typing import Annotated, get_args
 
 import dateutil
+from mininterface import Tag
+from mininterface.exceptions import ValidationFail
+from mininterface.subcommands import Command
+from tyro.conf import Positional
+
 from .controller import Controller
 from .utils import (count_relative_shift, get_date, set_files_timestamp,
                     touch_multiple)
-from typing import Annotated, get_args
-from mininterface import Tag
-from tyro.conf import Positional
-from dataclasses import MISSING, dataclass, field
-from pathlib import Path
-
-from mininterface.subcommands import Command
-from mininterface.exceptions import ValidationFail
 
 DateFormat = str  # Use type as of Python3.12
 
@@ -52,24 +52,28 @@ class App(Command):
 class Set(App):
     """ Set to a specific time """
 
-    date: Annotated[str, Tag(on_change=c.refresh_title)] = ""
+    # TODO, should be working with DatetimeTag automatically
+    date: Annotated[datetime, Tag(on_change=c.refresh_title)] = datetime.now()
     """ Set specific date """
-    time: Annotated[str, Tag(on_change=c.refresh_title)] = ""
-    """ Set specific time """
+    # date: Annotated[str, Tag(on_change=c.refresh_title)] = ""
+    # """ Set specific date """
+    # time: Annotated[str, Tag(on_change=c.refresh_title)] = ""
+    # """ Set specific time """
 
     def init(self):
         super().init()
         # NOTE program fails on wrong date in GUI
         if self.ref_date:
-            self.date = self.date or str(self.ref_date.date())
-            self.time = self.time or str(self.ref_date.time())
+            self.date = self.date or str(self.ref_date.timestamp())
+            # self.date = self.date or str(self.ref_date.date())
+            # self.time = self.time or str(self.ref_date.time())
 
     def run(self):
-        if bool(self.date) != bool(self.time):
-            # NOTE allow only time change (the date would stay)
-            print("You have to specify both date and time ")
-            quit()
-        set_files_timestamp(self.date, self.time, self.files)
+        # if bool(self.date) != bool(self.time):
+        #     # NOTE allow only time change (the date would stay)
+        #     print("You have to specify both date and time ")
+        #     quit()
+        set_files_timestamp(self.date, self.files)
 
 
 @dataclass
@@ -151,7 +155,7 @@ class RelativeToReference(Set):
         get_args(self.__annotations__["reference"])[1].choices = self.files
 
     def run(self):
-        reference = count_relative_shift(self.date, self.time, self.reference)
+        reference = count_relative_shift(self.date, self.reference)
 
         # microsecond precision is neglected here, touch does not takes it
         touch_multiple(self.files, f"{reference.days} days {reference.seconds} seconds")

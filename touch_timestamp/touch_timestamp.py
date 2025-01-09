@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from mininterface import run
 from mininterface.subcommands import SubcommandPlaceholder
-from .app import FromName, RelativeToReference, Set, Exif, Shift
+
+from .app import Exif, FromName, RelativeToReference, Set, Shift
 
 # NOTE add tests for CLI flags
 

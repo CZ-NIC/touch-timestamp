@@ -3,26 +3,22 @@ from os import utime
 from pathlib import Path
 import subprocess
 
-import dateutil.parser
-
 
 def get_date(path: str | Path):
     return datetime.fromtimestamp(Path(path).stat().st_mtime)
 
 
-def set_files_timestamp(date, time, files: list[str]):
-    print("Touching files", date, time)
+def set_files_timestamp(date: datetime, files: list[str]):
+    print("Touching files", date)
     print(", ".join(str(f) for f in files))
-    if date and time:
-        time = dateutil.parser.parse(f"{date} {time}").timestamp()
+    if date:
+        time = date.timestamp()
         [utime(f, (time, time)) for f in files]
         return True
 
 
-def count_relative_shift(date, time, path: str | Path):
-    target = dateutil.parser.parse(f"{date} {time}")
-    date = get_date(path)
-    return target - date
+def count_relative_shift(date: datetime, path: str | Path):
+    return date - get_date(path)
 
 
 def touch_multiple(files: list[Path], relative_str):
