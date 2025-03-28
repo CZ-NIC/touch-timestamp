@@ -9,6 +9,7 @@ import dateutil
 from mininterface import Tag
 from mininterface.exceptions import ValidationFail
 from mininterface.subcommands import Command
+from mininterface.types import EnumTag
 from tyro.conf import Positional
 
 from .controller import Controller
@@ -52,27 +53,16 @@ class App(Command):
 class Set(App):
     """ Set to a specific time """
 
-    # TODO, should be working with DatetimeTag automatically
     date: Annotated[datetime, Tag(on_change=c.refresh_title)] = datetime.now()
     """ Set specific date """
-    # date: Annotated[str, Tag(on_change=c.refresh_title)] = ""
-    # """ Set specific date """
-    # time: Annotated[str, Tag(on_change=c.refresh_title)] = ""
-    # """ Set specific time """
 
     def init(self):
         super().init()
         # NOTE program fails on wrong date in GUI
         if self.ref_date:
-            self.date = self.date or str(self.ref_date.timestamp())
-            # self.date = self.date or str(self.ref_date.date())
-            # self.time = self.time or str(self.ref_date.time())
+            self.date = self.ref_date
 
     def run(self):
-        # if bool(self.date) != bool(self.time):
-        #     # NOTE allow only time change (the date would stay)
-        #     print("You have to specify both date and time ")
-        #     quit()
         set_files_timestamp(self.date, self.files)
 
 
@@ -124,7 +114,7 @@ class FromName(App):
 
 @dataclass
 class Shift(App):
-    unit: Annotated[str, Tag(choices=["minutes", "hours"], name="Unit")] = "minutes"
+    unit: Annotated[str, EnumTag(choices=["minutes", "hours"], name="Unit")] = "minutes"
     shift: Annotated[str, Tag(name="How many")] = "0"
     # NOTE: mininterface GUI works bad with negative numbers, hence we use str
 
@@ -139,7 +129,7 @@ class Shift(App):
 @dataclass
 class RelativeToReference(Set):
 
-    reference: Annotated[Path | None, Tag(on_change=c.do_refresh_title)] = None
+    reference: Annotated[str | None, EnumTag(on_change=c.do_refresh_title)] = None
     """ Relative shift with reference. The reference file is set to the specified date,
             and all other files are shifted by the same amount relative to this reference.
             If not set, the first of the files is used."""
@@ -151,7 +141,7 @@ class RelativeToReference(Set):
 
         # NOTE this is not nice. It changes the annotation of the whole dataclass.
         # Mininterface should provide a clear init callback so that we might change the values
-        # at the beginning and once the self.files changes.
+        # at the beginning and once the self.files changes.    
         get_args(self.__annotations__["reference"])[1].choices = self.files
 
     def run(self):
