@@ -141,7 +141,7 @@ class RelativeToReference(Set):
 
         # NOTE this is not nice. It changes the annotation of the whole dataclass.
         # Mininterface should provide a clear init callback so that we might change the values
-        # at the beginning and once the self.files changes.    
+        # at the beginning and once the self.files changes.
         get_args(self.__annotations__["reference"])[1].choices = self.files
 
     def run(self):

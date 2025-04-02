@@ -22,7 +22,7 @@ class Controller:
         files = form["files"].val
         dates = [get_date(p) for p in files]
 
-        shift = count_relative_shift(e["date"].val, e["time"].val, e["reference"].val)
+        shift = count_relative_shift(e["date"].val, e["reference"].val)
 
         tag.facet.set_title(f"Relative with reference preview"
                             f"\nCurrently, {len(files)} files have time span:"
