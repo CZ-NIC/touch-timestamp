@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from mininterface import run
-from mininterface.subcommands import SubcommandPlaceholder
+from mininterface.cli import SubcommandPlaceholder
 
 from .app import Exif, FromName, RelativeToReference, Set, Shift
 

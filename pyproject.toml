@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "touch-timestamp"
-version = "0.4.3"
+version = "0.4.5"
 description = "Change file timestamps with a dialog window."
 authors = ["Edvard Rejthar <edvard.rejthar@nic.cz>"]
 license = "GPL-3.0-or-later"
@@ -14,7 +14,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 python-dateutil = "*"
-mininterface = ">=0.8"
+mininterface = { version = "^1", extras = ["basic"] }
 
 [tool.poetry.scripts]
 touch-timestamp = "touch_timestamp.touch_timestamp:main"
