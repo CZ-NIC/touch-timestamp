@@ -15,6 +15,10 @@ readme = "README.md"
 python = "^3.10"
 python-dateutil = "*"
 mininterface = { version = "^1", extras = ["basic"] }
+pydash = "*"
+
+[tool.poetry.extras]
+"heif" = ["pillow", "pillow_heif"]
 
 [tool.poetry.scripts]
 touch-timestamp = "touch_timestamp.touch_timestamp:main"
