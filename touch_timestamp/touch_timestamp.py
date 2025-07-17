@@ -2,13 +2,16 @@
 from mininterface import run
 from mininterface.cli import SubcommandPlaceholder
 
-from .app import Exif, FromName, RelativeToReference, Set, Shift
+from .app import Metadata, FromName, RelativeToReference, Set, Shift
 
 # NOTE add tests for CLI flags
 
 
 def main():
-    run([Set, Exif, FromName, Shift, RelativeToReference, SubcommandPlaceholder], title="Touch")
+    run(
+        [Set, Metadata, FromName, Shift, RelativeToReference, SubcommandPlaceholder],
+        title="Touch",
+    )
 
 
 if __name__ == "__main__":
